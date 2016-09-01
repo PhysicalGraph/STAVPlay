@@ -1,0 +1,8 @@
+.settings
+build
+*.wgt
+*.DS_Store
+third/version.txt
+third/dl
+third/include
+third/lib
