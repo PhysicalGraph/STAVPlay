@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/bin/sh
 set -o errexit
 set -o nounset
 
@@ -41,26 +40,16 @@ dl_file() {
     fi
 }
 
-check_ver_file() {
-    local pkgver=$1
-    local versionfile=third/version.txt
-
-    if [ -e $versionfile ] && [ $pkgver = $(cat $versionfile) ]; then
-	return 0
-    fi
-    return 1
-}
-
 mkdir -p $dl_dir
 fname="stavports_${stavports_ver}.tar.gz"
 dl_file $fname $stavports_md5 "$repo/${fname}"
 
-# clean-up old locations
-rm -rf third/include
-rm -rf third/lib
-
-if ! check_ver_file $stavports_ver; then
+versionfile=third/version.txt
+if [ ! -e $versionfile ] || [ $stavports_ver != $(cat $versionfile) ]; then
     status "Extracting stavports ..."
+    rm  -f third/version.txt
+    rm -rf third/include
+    rm -rf third/lib
     tar -C third/ -xvf $dl_dir/$fname
     printf "%s" "$stavports_ver" >third/version.txt
 fi
