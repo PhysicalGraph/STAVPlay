@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <title>STAVPlay</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" src="js/player.js"></script>
+  </head>
+  <body>
+    <h1>STAV live streaming</h1>
+    <textarea id="log"></textarea>
+    <div id="listener">
+      <embed
+	 name="STAVPlay"
+	 id="stavplayer"
+	 width=1280 height=720
+	 src="stavplay.nmf"
+	 type="application/x-nacl" />
+     <p> <h3 style="color:red;">Audio Level:</h3> <h2 style="color:white;" id="audiometer">0</h2> </p>
+    </div>
+  </body>
+</html>
