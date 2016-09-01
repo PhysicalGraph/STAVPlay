@@ -17,7 +17,7 @@ Samsung Tizen NaCl player for low latency live streaming of RTSP streams.
 
 Download/update compiled libraries from S3:
 
-`$ ./update_libs.sh`
+`./update_libs.sh`
 
 ## cert
 
@@ -94,4 +94,4 @@ View all logging information related to the widget:
 `sdb dlog *:* | grep STAVPlay` 
 
 ## licensing
-STAVPlay is licensed under the LGPL 2.1 (see LICENSE). This project contains code from Samsung's [NativePlayer sample](https://github.com/SamsungDForum/NativePlayer) (see LICENSE_SAMSUNG.txt). Please check the STAVPlay/third/include/lib*/LICENSE file for license information of the respective 3rd party libraries.
+STAVPlay is licensed under the LGPL 2.1 (see [LICENSE](LICENSE.txt)). This project contains code from Samsung's [NativePlayer sample](https://github.com/SamsungDForum/NativePlayer) (see [LICENSE_SAMSUNG](LICENSE_SAMSUNG.txt)). Please check the `third/include/lib*/LICENSE` file for license information of the respective 3rd party libraries (requires downloading the libraries).
