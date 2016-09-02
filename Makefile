@@ -12,29 +12,31 @@ CERT ?= stav
 
 # tizen
 TIZEN_SDK_ROOT ?= ~/tizen-sdk
-TIZEN_SDK_DATA ?= ~/tizen-sdk-data
 TIZEN = ${TIZEN_SDK_ROOT}/tools/ide/bin/tizen
 
 # Pepper 42 for 2016 TVs
 NACL_SDK_ROOT ?= ~/nacl_sdk/pepper_42
 
-# Build flags
-WARNINGS := -Wno-long-long -Wall -Werror
-CXXFLAGS := -std=gnu++0x -g $(WARNINGS)
+WARNINGS = -Wno-long-long -Wall -Werror
+CXXFLAGS = -std=gnu++0x -g $(WARNINGS)
 
-# Tools
-GETOS := python $(NACL_SDK_ROOT)/tools/getos.py
-OSHELPERS = python $(NACL_SDK_ROOT)/tools/oshelpers.py
-OSNAME := $(shell $(GETOS))
-
+OSNAME := $(shell python $(NACL_SDK_ROOT)/tools/getos.py)
 PNACL_TC_PATH := $(abspath $(NACL_SDK_ROOT)/toolchain/$(OSNAME)_pnacl)
-PNACL_CC := $(PNACL_TC_PATH)/bin/pnacl-clang
-PNACL_CXX := $(PNACL_TC_PATH)/bin/pnacl-clang++
-PNACL_TRANSLATE := $(PNACL_TC_PATH)/bin/pnacl-translate
-PNACL_FINALIZE := $(PNACL_TC_PATH)/bin/pnacl-finalize
+
+PNACL_CC        = $(PNACL_TC_PATH)/bin/pnacl-clang
+PNACL_CXX       = $(PNACL_TC_PATH)/bin/pnacl-clang++
+PNACL_TRANSLATE = $(PNACL_TC_PATH)/bin/pnacl-translate
+PNACL_FINALIZE  = $(PNACL_TC_PATH)/bin/pnacl-finalize
+
 CXXFLAGS += -I$(NACL_SDK_ROOT)/include -I third/include
-LDFLAGS := -L$(NACL_SDK_ROOT)/lib/pnacl/Release -L third/lib
-LIBS := -lpthread -lavformat -lavcodec -lswresample -lbz2 -lavutil -lm -lc++ -lssl -lcrypto -lz -lnacl_player -lnacl_io -lppapi -lppapi_cpp
+LDFLAGS = -L$(NACL_SDK_ROOT)/lib/pnacl/Release -L third/lib
+
+LIBS = \
+ -lavformat -lavcodec -lavutil -lswresample \
+ -lssl -lcrypto \
+ -lbz2 -lz \
+ -lpthread -lm -lc++ \
+ -lnacl_player -lnacl_io -lppapi -lppapi_cpp
 
 SOURCES = \
 src/convert_codecs.cc \
