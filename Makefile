@@ -53,10 +53,13 @@ ${BLDDIR}/stavplay_x86-64.nexe \
 ${BLDDIR}/stavplay_armv7.nexe \
 
 OBJS := $(patsubst %.cc, ${BLDDIR}/%.po, ${SOURCES})
+DEPS := $(patsubst %, %.deps, ${OBJS})
 
 
-#all: ${BLDDIR}/stavplay.pexe ${BLDDIR}/stavplay.nmf
 all: stavplay.wgt
+
+# first target is default. deps are targets. thus not first
+-include ${DEPS}
 
 ${BLDDIR}/stavplay.pexe: ${OBJS}
 	@mkdir -p $(dir $@)
