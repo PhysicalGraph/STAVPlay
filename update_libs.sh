@@ -4,8 +4,8 @@ set -o nounset
 
 repo=https://s3-us-west-2.amazonaws.com/smartthings-av-webports
 dl_dir=third/dl
-stavports_ver="2016-09-06"
-stavports_md5="6c44971edfe40b70419540666adb60c0"
+stavports_ver="2016-09-06.1"
+stavports_md5="5a9679e4c820fa0b853557c31b6f716b"
 
 if   which md5 >/dev/null;    then md5cmd="md5 -r"
 elif which md5sum >/dev/null; then md5cmd="md5sum"
