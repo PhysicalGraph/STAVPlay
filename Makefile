@@ -28,8 +28,8 @@ PNACL_CXX       = $(PNACL_TC_PATH)/bin/pnacl-clang++
 PNACL_TRANSLATE = $(PNACL_TC_PATH)/bin/pnacl-translate
 PNACL_FINALIZE  = $(PNACL_TC_PATH)/bin/pnacl-finalize
 
-CXXFLAGS += -I$(NACL_SDK_ROOT)/include -I third/include
-LDFLAGS = -L$(NACL_SDK_ROOT)/lib/pnacl/Release -L third/lib
+CXXFLAGS += -I$(NACL_SDK_ROOT)/include -I$(NACL_SDK_ROOT)/include/pnacl -Ithird/include
+LDFLAGS = -L$(NACL_SDK_ROOT)/lib/pnacl/Release -Lthird/lib
 
 LIBS = \
  -lavformat -lavcodec -lavutil -lswresample \
