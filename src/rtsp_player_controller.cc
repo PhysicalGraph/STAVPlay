@@ -490,7 +490,9 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 		for (int i = 0; i < nb_samples; i++) {
 			sample = (char)buff16[i];
 			//sample = sample / 128.0; //Normalized to (+/- 1.0)
-			sum += (sample * sample);
+			//sum += (sample * sample);			
+			sample = (sample < 0)? -sample : sample; //abs
+			sum += sample;
 		}
 		break;
 	  }
@@ -501,7 +503,9 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 		for (int i = 0; i < nb_samples; i++) {
 			sample = (short)(((short)buff16[(i*2) + 1] << 8) | (short)buff16[i*2]);
 			//sample = sample / 32768.0; //Normalized to (+/- 1.0)
-			sum += (sample * sample);
+			//sum += (sample * sample);
+			sample = (sample < 0)? -sample : sample; //abs
+			sum += sample;
 		}
 		break;
 	  }
@@ -511,8 +515,8 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 		break;
 	}
 
-	rms = (float)sqrt(sum / (nb_samples));
-	rms = 20 * log(rms) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
+	//rms = (float)sqrt(sum / (nb_samples));
+	rms = 20 * log(sum / nb_samples) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
 	audio_rms_ = (audio_rms_ + rms) / 2.0; //Average RMS.
 
 	TimeTicks ts_now = ToTimeTicks(input_frame->best_effort_timestamp, time_base);
