@@ -512,7 +512,7 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 	}
 
 	rms = (float)sqrt(sum / (nb_samples));
-    rms = 20 * log(rms) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
+	rms = 20 * log(rms) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
 	audio_rms_ = (audio_rms_ + rms) / 2.0; //Average RMS.
 
 	TimeTicks ts_now = ToTimeTicks(input_frame->best_effort_timestamp, time_base);
