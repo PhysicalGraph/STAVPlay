@@ -75,11 +75,10 @@ class PlayerProvider {
   ///   parameter, if is not specified then UTF-8 is used.
   /// @return A configured and initialized <code>PlayerController<code>.
   std::shared_ptr<PlayerController> CreatePlayer(PlayerType type,
+                                     const Samsung::NaClPlayer::Rect view_rect,
                                      const std::string& url,
                                      const double& audio_level_cb_frequency,
-                                     const Samsung::NaClPlayer::Rect view_rect,
-                                     const std::string& subtitle = {},
-                                     const std::string& encoding = {});
+                                     const std::string& crt_path);
 
  private:
   pp::InstanceHandle instance_;

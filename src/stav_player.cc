@@ -6,6 +6,7 @@
  * @author Michal Murgrabia
  */
 
+#include <sys/mount.h>
 #include "stav_player.h"
 
 #include "nacl_io/nacl_io.h"
@@ -74,6 +75,12 @@ bool STAVPlayer::Init(uint32_t argc, const char** argn, const char** argv) {
 
 void STAVPlayer::InitNaClIO() {
   nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
+  LOG_INFO("mounting httpfs @ /http");
+  mount("",       /* source. Use relative URL */
+        "/http",  /* target */
+        "httpfs", /* filesystemtype */
+        0,        /* mountflags */
+        "");      /* data */
 }
 
 void STAVPlayer::DispatchMessage(pp::Var message) {

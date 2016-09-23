@@ -152,10 +152,6 @@ const std::string kKeyId = "id";
 const std::string kKeyLanguage = "language";
 
 /// A string value used in messages as a <code>VarDictionary</code> key.
-/// This key maps to a <code>string</code> type value.
-const std::string kKeySubtitle = "subtitle";
-
-/// A string value used in messages as a <code>VarDictionary</code> key.
 /// This key maps to a <code>double</code> type value.
 const std::string kKeyTime = "time";
 
@@ -169,6 +165,8 @@ const std::string kKeyUrl = "url";
 
 /// A string value used in messages as a <code>VarDictionary</code> key.
 const std::string kKeyUpdateFrequency = "audio_level_cb_frequency";
+
+const std::string kKeyArloCrtPath = "crt_path";
 /// This key maps to an <code>int</code> type value.
 const std::string kKeyWidth = "width";
 

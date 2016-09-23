@@ -127,8 +127,8 @@ class MessageReceiver : public pp::MessageHandler {
   ///   parameter, which has to be a <code>string</code> type value.
   /// @see kLoadMedia
   /// @see ClipTypeEnum
-  void LoadMedia(const pp::Var& type, const pp::Var& url,
-                   const pp::Var& subtitle, const pp::Var& encoding, const pp::Var& audio_level_cb_frequency);
+  void LoadMedia(const pp::Var& type, const pp::Var& url, const pp::Var& audio_level_cb_frequency,
+                 const pp::Var& crt_path);
 
   void Stop();
 

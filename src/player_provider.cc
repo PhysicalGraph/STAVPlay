@@ -14,15 +14,15 @@
 using Samsung::NaClPlayer::Rect;
 
 std::shared_ptr<PlayerController> PlayerProvider::CreatePlayer(
-                    PlayerType type, const std::string& url, const double& audio_level_cb_frequency,
-                    const Samsung::NaClPlayer::Rect view_rect,
-                    const std::string& subtitle, const std::string& encoding) {
+                    PlayerType type, const Samsung::NaClPlayer::Rect view_rect,
+                    const std::string& url, const double& audio_level_cb_frequency,
+                    const std::string& crt_path) {
   switch (type) {
     case kRTSP: {
       std::shared_ptr<RTSPPlayerController> controller =
           std::make_shared<RTSPPlayerController>(instance_, message_sender_);
       controller->SetViewRect(view_rect);
-      controller->InitPlayer(url,audio_level_cb_frequency);
+      controller->InitPlayer(url, audio_level_cb_frequency, crt_path);
       return controller;
     }
     default:
