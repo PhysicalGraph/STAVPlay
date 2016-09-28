@@ -139,7 +139,7 @@ class RTSPPlayerController : public PlayerController,
 		Samsung::NaClPlayer::TimeTicks timestamp_;
 		bool is_parsing_finished_;
 		bool is_mute_;
-		float audio_rms_;
+		float audio_level_;
 		double prev_audio_ts_;
 		double audio_level_cb_frequency_;
 };
