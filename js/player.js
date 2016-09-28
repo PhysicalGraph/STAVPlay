@@ -58,13 +58,15 @@ STAVPlayer.handleMessage = function(e) {
     }    
 }
 
-STAVPlayer.play = function(url, audio_level_cb_frequency) {
+STAVPlayer.play = function(url, audio_level_cb_frequency, crt_path) {
 	audio_level_cb_frequency = audio_level_cb_frequency || 0;
     if (this.playReady) {
         this.module.postMessage({'messageToPlayer': this.MessageTo.kPlay});
     } else {
         this.module.postMessage({'messageToPlayer': this.MessageTo.kLoadMedia,
-                                 'type' : 1, 'url': url, 'audio_level_cb_frequency':audio_level_cb_frequency});
+                                 'type' : 1, 'url': url,
+                                 'audio_level_cb_frequency':audio_level_cb_frequency,
+                                 'crt_path': crt_path});
     }
 }
 

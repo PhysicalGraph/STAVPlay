@@ -93,7 +93,8 @@ void av_log_callback(void *ptr, int level, const char *fmt, va_list vargs) {
 	}
 }
 
-void RTSPPlayerController::InitPlayer(const std::string& url,const double& audio_level_cb_frequency) {
+void RTSPPlayerController::InitPlayer(const std::string& url, const double& audio_level_cb_frequency,
+                                      const std::string& crt_path) {
 	LOG_INFO("Loading media from: '%s'", url.c_str());
 	CleanPlayer();
 
@@ -125,7 +126,8 @@ void RTSPPlayerController::InitPlayer(const std::string& url,const double& audio
 	need_audio_data_ = false;
 	audio_level_cb_frequency_ = audio_level_cb_frequency;
 
-	player_thread_->message_loop().PostWork(cc_factory_.NewCallback(&RTSPPlayerController::InitializeStreams, url));
+	player_thread_->message_loop().PostWork(cc_factory_.NewCallback(
+		&RTSPPlayerController::InitializeStreams, url, crt_path));
 }
 
 void RTSPPlayerController::UpdateAudioConfig() {
@@ -195,7 +197,8 @@ void RTSPPlayerController::UpdateVideoConfig() {
 	LOG_INFO("video configuration updated");
 }
 
-void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url) {
+void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url,
+                                             const std::string& crt_path) {
 	// add ElementaryStreamListeners
 	std::shared_ptr<ESListener> video_listener = std::make_shared<ESListener>(this, kVideoType);
 	video_stream_ = std::make_shared<Samsung::NaClPlayer::VideoElementaryStream>();
@@ -221,6 +224,12 @@ void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url) {
 
 	AVDictionary *opts = 0;
 	av_dict_set(&opts, "rtsp_transport", "tcp", 0);
+
+	if (strncmp(url.c_str(), "rtsps", strlen("rtsps")) == 0) {
+		LOG_DEBUG("RTSPS protocol.");
+		av_dict_set(&opts, "ca_file", ("/http/" + crt_path).c_str(), 0);
+		av_dict_set(&opts, "tls_verify", "1", 0);
+	}
 	int ret = avformat_open_input(&format_context_, url.c_str(), NULL, &opts);
 	av_dict_free(&opts);
 

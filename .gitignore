@@ -6,3 +6,4 @@ third/version.txt
 third/dl
 third/include
 third/lib
+*.crt

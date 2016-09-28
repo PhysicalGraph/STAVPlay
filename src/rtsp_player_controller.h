@@ -67,7 +67,8 @@ class RTSPPlayerController : public PlayerController,
 		/// @param[in] url An address of an RTSP feed to be prepared for a
 		///   playback in NaCl Player.
 		/// @see RTSPPlayerController::RTSPPlayerController()
-		void InitPlayer(const std::string& url,const double& audio_level_cb_frequency);
+		void InitPlayer(const std::string& url, const double& audio_level_cb_frequency,
+		                const std::string& crt_path);
 
 		// Overloaded methods defined by PlayerController, don't have to be commented
 		void Play() override;
@@ -81,7 +82,7 @@ class RTSPPlayerController : public PlayerController,
 		/// @public
 		/// Marks end of configuration of all media streams.
 		void FinishStreamConfiguration();
-		void InitializeStreams(int32_t, const std::string& url);
+		void InitializeStreams(int32_t, const std::string& url, const std::string& crt_path);
 
 		void OnSetDisplayRect(int32_t);
 

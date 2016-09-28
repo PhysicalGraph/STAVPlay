@@ -46,9 +46,8 @@ void MessageReceiver::HandleMessage(pp::InstanceHandle /*instance*/,
     case MessageToPlayer::kLoadMedia:
       LoadMedia(msg.Get(kKeyType),
                 msg.Get(kKeyUrl),
-                msg.Get(kKeySubtitle),
-                msg.Get(kKeyEncoding),
-                msg.Get(kKeyUpdateFrequency)
+                msg.Get(kKeyUpdateFrequency),
+                msg.Get(kKeyArloCrtPath)
                 );
       break;
     case MessageToPlayer::kPlay:
@@ -79,7 +78,8 @@ Var MessageReceiver::HandleBlockingMessage(
 void MessageReceiver::ClosePlayer() { player_controller_.reset(); }
 
 void MessageReceiver::LoadMedia(const Var& type, const Var& url,
-                      const Var& subtitle, const Var& encoding, const Var& audio_level_cb_frequency) {
+                                const Var& audio_level_cb_frequency,
+                                const Var& crt_path) {
   if (!type.is_int() || !url.is_string()) {
     LOG_ERROR("Invalid message - 'url' should be a string");
     return;
@@ -94,14 +94,11 @@ void MessageReceiver::LoadMedia(const Var& type, const Var& url,
       return;
   }
 
-  if (subtitle.is_string()) {
-    player_controller_ = player_provider_->CreatePlayer(
-        player_type, url.AsString(), audio_level_cb_frequency.AsDouble(), view_rect_, subtitle.AsString(),
-        encoding.is_string() ? encoding.AsString() : "");
-  } else {
-    player_controller_ =
-        player_provider_->CreatePlayer(player_type, url.AsString(), audio_level_cb_frequency.AsDouble(), view_rect_);
-  }
+
+  player_controller_ =
+      player_provider_->CreatePlayer(player_type, view_rect_, url.AsString(),
+                                     audio_level_cb_frequency.AsDouble(),
+                                     crt_path.AsString());
 }
 
 void MessageReceiver::Play() {
