@@ -403,7 +403,7 @@ void RTSPPlayerController::StartParsing(int32_t) {
 
 	//Audio Level update
 	prev_audio_ts_ = 0;
-	audio_rms_ = 0;
+	audio_level_ = 0;
 	is_parsing_finished_ = false;
 	is_mute_ = false;
 
@@ -478,7 +478,7 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 	uint8_t *buff16 = *input_frame->extended_data;
 	int nb_samples = input_frame->nb_samples;
 	int bytes_per_sample = av_get_bytes_per_sample(format);
-	float sum = 0,rms=0,sample;
+	float sum = 0,decibel=0,sample;
 
 	if (audio_level_cb_frequency_ <= 0.0)  //user expects no audio-updates
 		return;
@@ -512,13 +512,13 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 	}
 
 	//rms = (float)sqrt(sum / (nb_samples));
-	rms = 20 * log(sum / nb_samples) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
-	audio_rms_ = (audio_rms_ + rms) / 2.0; //Average RMS.
+	decibel = 20 * log(sum / nb_samples) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
+	audio_level_ = (audio_level_ + decibel) / 2.0; //Average Decibel.
 
 	TimeTicks ts_now = ToTimeTicks(input_frame->best_effort_timestamp, time_base);
 	if ((ts_now - prev_audio_ts_) > audio_level_cb_frequency_) {
 		prev_audio_ts_ = ts_now;
-		message_sender_->SetAudioLevel((double)audio_rms_);
+		message_sender_->SetAudioLevel((double)audio_level_);
 	}
 
 }
