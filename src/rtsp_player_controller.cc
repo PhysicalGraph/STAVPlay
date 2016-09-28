@@ -489,9 +489,7 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 
 		for (int i = 0; i < nb_samples; i++) {
 			sample = (char)buff16[i];
-			//sample = sample / 128.0; //Normalized to (+/- 1.0)
-			//sum += (sample * sample);			
-			sample = (sample < 0)? -sample : sample; //abs
+			sample = fabs(sample);
 			sum += sample;
 		}
 		break;
@@ -502,9 +500,7 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 
 		for (int i = 0; i < nb_samples; i++) {
 			sample = (short)(((short)buff16[(i*2) + 1] << 8) | (short)buff16[i*2]);
-			//sample = sample / 32768.0; //Normalized to (+/- 1.0)
-			//sum += (sample * sample);
-			sample = (sample < 0)? -sample : sample; //abs
+			sample = fabs(sample);
 			sum += sample;
 		}
 		break;
