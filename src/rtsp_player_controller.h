@@ -104,7 +104,8 @@ class RTSPPlayerController : public PlayerController,
 		std::unique_ptr<ElementaryStreamPacket> MakeESPacketFromAVPacketTranscode(
 		    AVPacket* input_packet, AVAudioFifo *fifo, AVCodecContext* in_codec_ctx,
 		    AVCodecContext* out_codec_ctx, SwrContext* resample_context);
-
+		std::unique_ptr<ElementaryStreamPacket> MakeESPacketFromAVPacketDecode(
+			AVPacket* input_packet, AVCodecContext* in_codec_ctx, bool);
 		void StartParsing(int32_t);
 		void calculateAudioLevel(AVFrame *, AVSampleFormat, AVRational);
 
@@ -143,6 +144,7 @@ class RTSPPlayerController : public PlayerController,
 		float audio_level_;
 		double prev_audio_ts_;
 		double audio_level_cb_frequency_;
+		bool is_transcode;
 };
 
 #endif
