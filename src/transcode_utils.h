@@ -374,7 +374,7 @@ static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
 	LOG_INFO("IN channel_layout: %s", in_layout_str);
 	LOG_INFO("IN channels: %d", in_codec_ctx->channels);
 	LOG_INFO("IN bit_rate: %d", in_codec_ctx->bit_rate);
-	LOG_INFO("IN bits_per_channel: %d", in_codec_ctx->bit_rate / in_codec_ctx->sample_rate);
+	LOG_INFO("IN bits_per_channel: %d", codecpar->bits_per_raw_sample / in_codec_ctx->channels);
 
 	ret = avcodec_open2(in_codec_ctx, in_codec, NULL);
 	if (ret < 0) {
@@ -394,10 +394,10 @@ static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
 	out_codec_ctx = avcodec_alloc_context3(out_codec);
 	out_codec_ctx->profile        = FF_PROFILE_AAC_LOW;
 	out_codec_ctx->channels       = 1;
-	out_codec_ctx->sample_rate    = 8000;
+	out_codec_ctx->sample_rate    = in_codec_ctx->sample_rate ;
 	out_codec_ctx->channel_layout = av_get_default_channel_layout(out_codec_ctx->channels);
 	out_codec_ctx->sample_fmt     = out_codec->sample_fmts[0];
-	out_codec_ctx->bit_rate       = 48000;
+	out_codec_ctx->bit_rate       = in_codec_ctx->bit_rate;
 
 	char out_layout_str[16];
 	av_get_channel_layout_string(out_layout_str, sizeof(out_layout_str), -1,
