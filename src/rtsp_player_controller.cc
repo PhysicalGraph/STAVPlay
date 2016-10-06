@@ -137,8 +137,8 @@ void RTSPPlayerController::UpdateAudioConfig() {
 		audio_config_.codec_type = Samsung::NaClPlayer::AUDIOCODEC_TYPE_AAC;
 		audio_config_.codec_profile = ConvertAACAudioCodecProfile(s->codecpar->profile);// Method
 		audio_config_.channel_layout =  ConvertChannelLayout(s->codecpar->channel_layout, s->codecpar->channels); //Method
-		audio_config_.sample_format = ConvertSampleFormat(s->codec->sample_fmt);
-		audio_config_.bits_per_channel = av_get_bytes_per_sample(s->codec->sample_fmt) * 8 / s->codecpar->channels;
+		audio_config_.sample_format = ConvertSampleFormat((AVSampleFormat)s->codecpar->format);
+		audio_config_.bits_per_channel = s->codecpar->bits_per_raw_sample / s->codecpar->channels;
 		audio_config_.samples_per_second = s->codecpar->sample_rate ;
 	}
 	else{
@@ -523,7 +523,6 @@ void RTSPPlayerController::StartParsing(int32_t) {
 void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFormat format, AVRational time_base) {
 	uint8_t *buff16 = *input_frame->extended_data;
 	int nb_samples = input_frame->nb_samples;
-	int bytes_per_sample = av_get_bytes_per_sample(format);
 	float sum = 0,decibel=0,sample;
 
 	if (audio_level_cb_frequency_ <= 0.0)  //user expects no audio-updates
@@ -589,7 +588,7 @@ std::unique_ptr<ElementaryStreamPacket> RTSPPlayerController::MakeESPacketFromAV
 	int ret = 0;
 	int data_present = 0;
 	AVFrame *input_frame = NULL;
-	uint8_t **converted_input_samples = NULL;
+
 	init_input_frame(&input_frame);
 	ret = decode(in_codec_ctx, input_frame, &data_present, input_packet);
 	if (ret < 0) {

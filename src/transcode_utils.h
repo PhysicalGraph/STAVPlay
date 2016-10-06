@@ -374,7 +374,7 @@ static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
 	LOG_INFO("IN channel_layout: %s", in_layout_str);
 	LOG_INFO("IN channels: %d", in_codec_ctx->channels);
 	LOG_INFO("IN bit_rate: %d", in_codec_ctx->bit_rate);
-	LOG_INFO("IN bits_per_channel: %d", in_codec_ctx->bit_rate / in_codec_ctx->sample_rate);
+	LOG_INFO("IN bits_per_channel: %d", codecpar->bits_per_raw_sample / in_codec_ctx->channels);
 
 	ret = avcodec_open2(in_codec_ctx, in_codec, NULL);
 	if (ret < 0) {
