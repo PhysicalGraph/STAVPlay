@@ -211,25 +211,6 @@ void RTSPPlayerController::UpdateVideoConfig() {
 
 void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url,
                                              const std::string& crt_path) {
-	// add ElementaryStreamListeners
-	std::shared_ptr<ESListener> video_listener = std::make_shared<ESListener>(this, kVideoType);
-	video_stream_ = std::make_shared<Samsung::NaClPlayer::VideoElementaryStream>();
-	int32_t err=data_source_->AddStream(*video_stream_, video_listener);
-	if (err == ErrorCodes::Success) {
-		LOG_INFO("Video added successfully");
-	} else {
-		LOG_ERROR("Adding video failed, code: %d", err);
-	}
-
-	std::shared_ptr<ESListener> audio_listener = std::make_shared<ESListener>(this, kAudioType);
-	audio_stream_ = std::make_shared<Samsung::NaClPlayer::AudioElementaryStream>();
-	err=data_source_->AddStream(*audio_stream_, audio_listener);
-	if (err == ErrorCodes::Success) {
-		LOG_INFO("Audio added successfully");
-	} else {
-		LOG_ERROR("Adding audio failed, code: %d", err);
-	}
-
 	// init ffmpeg
 	format_context_ = avformat_alloc_context();
 
@@ -271,12 +252,26 @@ void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url,
 	video_stream_idx_ = av_find_best_stream(format_context_, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
 	audio_stream_idx_ = av_find_best_stream(format_context_, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
 
+	if (video_stream_idx_ < 0 and audio_stream_idx_ < 0) {
+		LOG_ERROR("No video or audio streams in source.");
+		return;
+	}
+
 	if (video_stream_idx_ >= 0) {
 		LOG_INFO("video index: %d", video_stream_idx_);
-		UpdateVideoConfig();
 
+		// add ElementaryStreamListener
+		std::shared_ptr<ESListener> video_listener = std::make_shared<ESListener>(this, kVideoType);
+		video_stream_ = std::make_shared<Samsung::NaClPlayer::VideoElementaryStream>();
+		int32_t err = data_source_->AddStream(*video_stream_, video_listener);
+		if (err == ErrorCodes::Success) {
+			LOG_INFO("Video added successfully");
+		} else {
+			LOG_ERROR("Adding video failed, code: %d", err);
+		}
 
 		// fill video_config with proper information
+		UpdateVideoConfig();
 		video_stream_->SetVideoCodecType(video_config_.codec_type);
 		video_stream_->SetVideoCodecProfile(video_config_.codec_profile);
 		video_stream_->SetVideoFrameFormat(video_config_.frame_format);
@@ -289,16 +284,25 @@ void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url,
 
 	if (audio_stream_idx_ >= 0) {
 		LOG_INFO("audio index: %d", audio_stream_idx_);
-		UpdateAudioConfig();
+
+		// add ElementaryStreamListener
+		std::shared_ptr<ESListener> audio_listener = std::make_shared<ESListener>(this, kAudioType);
+		audio_stream_ = std::make_shared<Samsung::NaClPlayer::AudioElementaryStream>();
+		int32_t err = data_source_->AddStream(*audio_stream_, audio_listener);
+		if (err == ErrorCodes::Success) {
+			LOG_INFO("Audio added successfully");
+		} else {
+			LOG_ERROR("Adding audio failed, code: %d", err);
+		}
+
 		// fill audio_config with proper information
+		UpdateAudioConfig();
 		audio_stream_->SetAudioCodecType(audio_config_.codec_type);
 		audio_stream_->SetAudioCodecProfile(audio_config_.codec_profile);
 		audio_stream_->SetSampleFormat(audio_config_.sample_format);
 		audio_stream_->SetChannelLayout(audio_config_.channel_layout);
 		audio_stream_->SetBitsPerChannel(audio_config_.bits_per_channel);
 		audio_stream_->SetSamplesPerSecond(audio_config_.samples_per_second);
-		//audio_stream_->SetCodecExtraData(audio_config_.extra_data.size(),
-		//                             &audio_config_.extra_data.front());
 		audio_stream_->InitializeDone();
 	}
 
@@ -412,31 +416,35 @@ void RTSPPlayerController::RTPCheckAndSendBackStats(RTPDemuxContext *s, uint64_t
 }
 
 void RTSPPlayerController::StartParsing(int32_t) {
-	//Open the Audio Decoder Context
 	AVCodecContext *in_codec_ctx = NULL, *out_codec_ctx = NULL;
 	SwrContext *resample_context = NULL;
 	AVAudioFifo *fifo = NULL;
-	AVStream* s = format_context_->streams[audio_stream_idx_];
+	AVStream* s = NULL;
 	int ret = 0, bits_this_sec = 0;
 	uint64_t stats_last_sent = 0;
 	RTSPState *state;
 	RTPDemuxContext *demux;
 
-	init_transcoder(s->codecpar, &in_codec_ctx, &out_codec_ctx, &resample_context);
+	// Open the Audio Decoder Context
+	if (audio_stream_idx_ >= 0) {
+		s = format_context_->streams[audio_stream_idx_];
+		init_transcoder(s->codecpar, &in_codec_ctx, &out_codec_ctx, &resample_context);
 
-	// Initialize the FIFO buffer to store audio samples to be encoded
-	init_fifo(&fifo, out_codec_ctx);
+		// Initialize the FIFO buffer to store audio samples to be encoded
+		init_fifo(&fifo, out_codec_ctx);
+
+		// Audio Level update
+		prev_audio_ts_ = 0;
+		audio_level_ = 0;
+		is_mute_ = false;
+	}
+
+	is_parsing_finished_ = false;
 
 	AVPacket pkt;
 	av_init_packet(&pkt);
 	pkt.data = NULL;
 	pkt.size = 0;
-
-	//Audio Level update
-	prev_audio_ts_ = 0;
-	audio_level_ = 0;
-	is_parsing_finished_ = false;
-	is_mute_ = false;
 
 	while (!is_parsing_finished_) {
 		unique_ptr<ElementaryStreamPacket> es_pkt;
@@ -473,9 +481,8 @@ void RTSPPlayerController::StartParsing(int32_t) {
 				if(is_transcode) {
 					es_pkt = MakeESPacketFromAVPacketTranscode(&pkt, fifo, in_codec_ctx, out_codec_ctx, resample_context);
 				} else {
-					es_pkt = MakeESPacketFromAVPacketDecode(&pkt,in_codec_ctx, is_mute_);
+					es_pkt = MakeESPacketFromAVPacketDecode(&pkt, in_codec_ctx, is_mute_);
 				}
-				//es_pkt = MakeESPacketFromAVPacket(&pkt);
 			} else {
 				es_pkt = MakeESPacketFromAVPacket(&pkt);
 			}
@@ -493,12 +500,17 @@ void RTSPPlayerController::StartParsing(int32_t) {
 		pkt.size = 0;
 	}
 
-	LOG_INFO("Flushing decoder/encoder");
-	if (flush_decoder(in_codec_ctx) < 0)
-		LOG_ERROR("Could not flush decoder (error '%s')", get_error_text(ret));
+	if (in_codec_ctx) {
+		LOG_INFO("Flushing decoder");
+		if (flush_decoder(in_codec_ctx) < 0)
+			LOG_ERROR("Could not flush decoder (error '%s')", get_error_text(ret));
+	}
 
-	if (flush_encoder(out_codec_ctx) < 0)
-		LOG_ERROR("Could not flush encoder (error '%s')", get_error_text(ret));
+	if (out_codec_ctx) {
+		LOG_INFO("Flushing encoder");
+		if (flush_encoder(out_codec_ctx) < 0)
+			LOG_ERROR("Could not flush encoder (error '%s')", get_error_text(ret));
+	}
 
 	if (fifo)
 		av_audio_fifo_free(fifo);
@@ -508,7 +520,6 @@ void RTSPPlayerController::StartParsing(int32_t) {
 	avcodec_free_context(&out_codec_ctx);
 	LOG_INFO("Finished parsing data. parser: %p", this);
 }
-
 
 /*
  * Decibel table for different sample format
