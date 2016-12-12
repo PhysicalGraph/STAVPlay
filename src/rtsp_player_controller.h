@@ -103,9 +103,9 @@ class RTSPPlayerController : public PlayerController,
 		std::unique_ptr<ElementaryStreamPacket> MakeESPacketFromAVPacket(AVPacket* pkt);
 		std::unique_ptr<ElementaryStreamPacket> MakeESPacketFromAVPacketTranscode(
 		    AVPacket* input_packet, AVAudioFifo *fifo, AVCodecContext* in_codec_ctx,
-		    AVCodecContext* out_codec_ctx, SwrContext* resample_context);
+		    AVCodecContext* out_codec_ctx, SwrContext* resample_context,bool);
 		std::unique_ptr<ElementaryStreamPacket> MakeESPacketFromAVPacketDecode(
-			AVPacket* input_packet, AVCodecContext* in_codec_ctx, bool);
+			AVPacket* input_packet, AVCodecContext* in_codec_ctx);
 		void StartParsing(int32_t);
 		void calculateAudioLevel(AVFrame *, AVSampleFormat, AVRational);
 

@@ -428,7 +428,7 @@ void RTSPPlayerController::StartParsing(int32_t) {
 	// Open the Audio Decoder Context
 	if (audio_stream_idx_ >= 0) {
 		s = format_context_->streams[audio_stream_idx_];
-		init_transcoder(s->codecpar, &in_codec_ctx, &out_codec_ctx, &resample_context);
+		init_transcoder(s->codecpar, &in_codec_ctx, &out_codec_ctx, &resample_context,is_transcode);
 
 		// Initialize the FIFO buffer to store audio samples to be encoded
 		init_fifo(&fifo, out_codec_ctx);
@@ -478,10 +478,10 @@ void RTSPPlayerController::StartParsing(int32_t) {
 			}
 		} else {
 			if (pkt.stream_index == audio_stream_idx_) {
-				if(is_transcode) {
-					es_pkt = MakeESPacketFromAVPacketTranscode(&pkt, fifo, in_codec_ctx, out_codec_ctx, resample_context);
+				if(is_transcode || is_mute_) {
+					es_pkt = MakeESPacketFromAVPacketTranscode(&pkt, fifo, in_codec_ctx, out_codec_ctx, resample_context,is_mute_);
 				} else {
-					es_pkt = MakeESPacketFromAVPacketDecode(&pkt, in_codec_ctx, is_mute_);
+					es_pkt = MakeESPacketFromAVPacketDecode(&pkt, in_codec_ctx);
 				}
 			} else {
 				es_pkt = MakeESPacketFromAVPacket(&pkt);
@@ -595,7 +595,7 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 
 }
 std::unique_ptr<ElementaryStreamPacket> RTSPPlayerController::MakeESPacketFromAVPacketDecode(
-    AVPacket* input_packet, AVCodecContext* in_codec_ctx, bool isMute) {
+    AVPacket* input_packet, AVCodecContext* in_codec_ctx) {
 	int ret = 0;
 	int data_present = 0;
 	AVFrame *input_frame = NULL;
@@ -609,16 +609,16 @@ std::unique_ptr<ElementaryStreamPacket> RTSPPlayerController::MakeESPacketFromAV
 	}
 	if (data_present) {
 		calculateAudioLevel(input_frame, in_codec_ctx->sample_fmt, in_codec_ctx->time_base);
-		if(!isMute) {
+
 			return MakeESPacketFromAVPacket(input_packet);
-		}
+
 	}
 	return NULL;
 }
 
 std::unique_ptr<ElementaryStreamPacket> RTSPPlayerController::MakeESPacketFromAVPacketTranscode(
     AVPacket* input_packet, AVAudioFifo *fifo, AVCodecContext* in_codec_ctx,
-    AVCodecContext* out_codec_ctx, SwrContext* resample_context) {
+    AVCodecContext* out_codec_ctx, SwrContext* resample_context,bool is_mute_) {
 	int ret = 0;
 	const int output_frame_size = out_codec_ctx->frame_size;
 

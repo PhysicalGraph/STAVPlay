@@ -345,7 +345,7 @@ int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
 
 static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
                            AVCodecContext** out_ctx,
-                           SwrContext** resample_ctx) {
+                           SwrContext** resample_ctx,bool is_transcode_) {
 	int ret = 0;
 	AVCodecContext *in_codec_ctx, *out_codec_ctx;
 
@@ -390,7 +390,7 @@ static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
 		LOG_ERROR("No encoder found for AAC");
 		return -1;
 	}
-
+    if(is_transcode_){
 	out_codec_ctx = avcodec_alloc_context3(out_codec);
 	out_codec_ctx->profile        = FF_PROFILE_AAC_LOW;
 	out_codec_ctx->channels       = 1;
@@ -398,7 +398,16 @@ static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
 	out_codec_ctx->channel_layout = av_get_default_channel_layout(out_codec_ctx->channels);
 	out_codec_ctx->sample_fmt     = out_codec->sample_fmts[0];
 	out_codec_ctx->bit_rate       = in_codec_ctx->bit_rate;
-
+    }
+    else{
+    	out_codec_ctx = avcodec_alloc_context3(out_codec);
+    	out_codec_ctx->profile        = codecpar->profile;
+    	out_codec_ctx->channels       = codecpar->channels;
+    	out_codec_ctx->sample_rate    = codecpar->sample_rate ;
+    	out_codec_ctx->channel_layout = codecpar->channel_layout;
+    	out_codec_ctx->sample_fmt     = (AVSampleFormat)codecpar->format;
+    	out_codec_ctx->bit_rate       = codecpar->bit_rate;
+    }
 	char out_layout_str[16];
 	av_get_channel_layout_string(out_layout_str, sizeof(out_layout_str), -1,
 	                             out_codec_ctx->channel_layout);
