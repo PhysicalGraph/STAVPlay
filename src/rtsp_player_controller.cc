@@ -127,12 +127,12 @@ void RTSPPlayerController::InitPlayer(const std::string& url, const double& audi
 	audio_level_cb_frequency_ = audio_level_cb_frequency;
 
 	player_thread_->message_loop().PostWork(cc_factory_.NewCallback(
-		&RTSPPlayerController::InitializeStreams, url, crt_path));
+	        &RTSPPlayerController::InitializeStreams, url, crt_path));
 }
 
 void RTSPPlayerController::UpdateAudioConfig() {
 	AVStream* s = format_context_->streams[audio_stream_idx_];
-	if(s->codecpar->codec_id == AV_CODEC_ID_AAC){
+	if (s->codecpar->codec_id == AV_CODEC_ID_AAC) {
 		is_transcode=false;
 		audio_config_.codec_type = Samsung::NaClPlayer::AUDIOCODEC_TYPE_AAC;
 		audio_config_.codec_profile = ConvertAACAudioCodecProfile(s->codecpar->profile);// Method
@@ -140,8 +140,7 @@ void RTSPPlayerController::UpdateAudioConfig() {
 		audio_config_.sample_format = ConvertSampleFormat((AVSampleFormat)s->codecpar->format);
 		audio_config_.bits_per_channel = s->codecpar->bits_per_raw_sample / s->codecpar->channels;
 		audio_config_.samples_per_second = s->codecpar->sample_rate ;
-	}
-	else{
+	} else {
 		is_transcode=true;
 		audio_config_.codec_type = Samsung::NaClPlayer::AUDIOCODEC_TYPE_AAC;
 		audio_config_.codec_profile = Samsung::NaClPlayer::AUDIOCODEC_PROFILE_AAC_LOW;
@@ -210,7 +209,7 @@ void RTSPPlayerController::UpdateVideoConfig() {
 }
 
 void RTSPPlayerController::InitializeStreams(int32_t, const std::string& url,
-                                             const std::string& crt_path) {
+        const std::string& crt_path) {
 	// init ffmpeg
 	format_context_ = avformat_alloc_context();
 
@@ -384,7 +383,7 @@ void RTSPPlayerController::OnSetDisplayRect(int32_t ret) {
 }
 
 void RTSPPlayerController::Mute() {
-    AutoLock critical_section(mute_lock_);
+	AutoLock critical_section(mute_lock_);
 	if (is_mute_==true) {
 		LOG_INFO("Mute flag is false - UnMuted");
 		is_mute_=false;
@@ -395,7 +394,7 @@ void RTSPPlayerController::Mute() {
 }
 
 void RTSPPlayerController::RTPCheckAndSendBackStats(RTPDemuxContext *s, uint64_t *stats_last_sent,
-                                                    int *bits_this_sec) {
+        int *bits_this_sec) {
 	// based on https://www.ffmpeg.org/doxygen/trunk/rtpdec_8c-source.html
 	RTPStatistics *stats = &s->statistics;
 	uint32_t lost;
@@ -478,7 +477,7 @@ void RTSPPlayerController::StartParsing(int32_t) {
 			}
 		} else {
 			if (pkt.stream_index == audio_stream_idx_) {
-				if(is_transcode || is_mute_) {
+				if (is_transcode || is_mute_) {
 					es_pkt = MakeESPacketFromAVPacketTranscode(&pkt, fifo, in_codec_ctx, out_codec_ctx, resample_context,is_mute_);
 				} else {
 					es_pkt = MakeESPacketFromAVPacketDecode(&pkt, in_codec_ctx);
@@ -524,11 +523,11 @@ void RTSPPlayerController::StartParsing(int32_t) {
 /*
  * Decibel table for different sample format
  * =================================================================
- * |bits per sample	| dB Max	| Base-ten Range					|
+ * |bits per sample | dB Max    | Base-ten Range                    |
  * =================================================================
- * |	8			| 48.16		| -128 to +127
- * |	16			| 96.33		| -32,768 to +32,767
- * |	32			| 192.66	| -2,147,483,648 to +2,147,483,647
+ * |    8           | 48.16     | -128 to +127
+ * |    16          | 96.33     | -32,768 to +32,767
+ * |    32          | 192.66    | -2,147,483,648 to +2,147,483,647
  * ------------------------------------------------------------------
  */
 void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFormat format, AVRational time_base) {
@@ -539,48 +538,45 @@ void RTSPPlayerController::calculateAudioLevel(AVFrame* input_frame, AVSampleFor
 	if (audio_level_cb_frequency_ <= 0.0)  //user expects no audio-updates
 		return;
 
-	switch(format) {
-	  case AV_SAMPLE_FMT_U8:
-	  case AV_SAMPLE_FMT_U8P: //8-bit sample
-	  {
+	switch (format) {
+		case AV_SAMPLE_FMT_U8:
+		case AV_SAMPLE_FMT_U8P: { //8-bit sample
 
-		for (int i = 0; i < nb_samples; i++) {
-			sample = (char)buff16[i];
-			sample = fabs(sample);
-			sum += sample;
+			for (int i = 0; i < nb_samples; i++) {
+				sample = (char)buff16[i];
+				sample = fabs(sample);
+				sum += sample;
+			}
+			break;
 		}
-		break;
-	  }
-	  
-	  case AV_SAMPLE_FMT_S16:
-	  case AV_SAMPLE_FMT_S16P: //16-bit sample
-	  {
 
-		for (int i = 0; i < nb_samples; i++) {
-			sample = (short)(((short)buff16[(i*2) + 1] << 8) | (short)buff16[i*2]);
-			sample = fabs(sample);
-			sum += sample;
+		case AV_SAMPLE_FMT_S16:
+		case AV_SAMPLE_FMT_S16P: { //16-bit sample
+
+			for (int i = 0; i < nb_samples; i++) {
+				sample = (short)(((short)buff16[(i*2) + 1] << 8) | (short)buff16[i*2]);
+				sample = fabs(sample);
+				sum += sample;
+			}
+			break;
 		}
-		break;
-	  }
 
-	  case AV_SAMPLE_FMT_FLTP:
-	  {
-		  for (int i = 0; i < nb_samples; i++) {
-			sample = (float)(((int)buff16[(i*4) + 3] << 24) |((int)buff16[(i*4) + 2] << 16) | ((int)buff16[(i*4) + 1] << 8) | (int)buff16[i*4]);
-			sample = fabs(sample);
-			sum += sample;
+		case AV_SAMPLE_FMT_FLTP: {
+			for (int i = 0; i < nb_samples; i++) {
+				sample = (float)(((int)buff16[(i*4) + 3] << 24) |((int)buff16[(i*4) + 2] << 16) | ((int)buff16[(i*4) + 1] << 8) | (int)buff16[i*4]);
+				sample = fabs(sample);
+				sum += sample;
+			}
+			break;
 		}
-		break;
-	  }
 
-	  default:
-		  sum = 0;
-		break;
+		default:
+			sum = 0;
+			break;
 	}
 
 	//rms = (float)sqrt(sum / (nb_samples));
-	if(sum > 0) {
+	if (sum > 0) {
 		decibel = 20 * log(sum / nb_samples) * 0.4343; // Multiplying by 0.4343 for base 10 conversion
 		audio_level_ = (audio_level_ + decibel) / 2.0; //Average Decibel.
 	} else {
@@ -610,7 +606,7 @@ std::unique_ptr<ElementaryStreamPacket> RTSPPlayerController::MakeESPacketFromAV
 	if (data_present) {
 		calculateAudioLevel(input_frame, in_codec_ctx->sample_fmt, in_codec_ctx->time_base);
 
-			return MakeESPacketFromAVPacket(input_packet);
+		return MakeESPacketFromAVPacket(input_packet);
 
 	}
 	return NULL;
@@ -622,36 +618,36 @@ std::unique_ptr<ElementaryStreamPacket> RTSPPlayerController::MakeESPacketFromAV
 	int ret = 0;
 	const int output_frame_size = out_codec_ctx->frame_size;
 
-		//Transcode any non AAC audio stream
-		int data_present = 0;
-		if (av_audio_fifo_size(fifo) < output_frame_size) {
-			// decode
-			AVFrame *input_frame = NULL;
-			uint8_t **converted_input_samples = NULL;
-			init_input_frame(&input_frame);
+	//Transcode any non AAC audio stream
+	int data_present = 0;
+	if (av_audio_fifo_size(fifo) < output_frame_size) {
+		// decode
+		AVFrame *input_frame = NULL;
+		uint8_t **converted_input_samples = NULL;
+		init_input_frame(&input_frame);
 
-			ret = decode(in_codec_ctx, input_frame, &data_present, input_packet);
-			if (ret < 0) {
-				LOG_ERROR("Could not decode frame (error '%s')", get_error_text(ret));
-				//av_packet_unref(&input_packet);
-				av_frame_free(&input_frame);
-				return NULL;
-			}
+		ret = decode(in_codec_ctx, input_frame, &data_present, input_packet);
+		if (ret < 0) {
+			LOG_ERROR("Could not decode frame (error '%s')", get_error_text(ret));
+			//av_packet_unref(&input_packet);
+			av_frame_free(&input_frame);
+			return NULL;
+		}
 		// If there is decoded data, convert and store it
 		if (data_present) {
 			calculateAudioLevel(input_frame, in_codec_ctx->sample_fmt, in_codec_ctx->time_base);
 
 			// Initialize the temporary storage for the converted input samples
 			ret = init_converted_samples(&converted_input_samples, out_codec_ctx,
-										 input_frame->nb_samples);
+			                             input_frame->nb_samples);
 			/**
 			 * Convert the input samples to the desired output sample format.
 			 * This requires a temporary storage provided by converted_input_samples.
 			 */
 
-		    AutoLock critical_section(mute_lock_);
+			AutoLock critical_section(mute_lock_);
 			ret = convert_samples((const AVFrame*) input_frame, converted_input_samples,
-					               resample_context, in_codec_ctx->sample_fmt, is_mute_);
+			                      resample_context, in_codec_ctx->sample_fmt, is_mute_);
 
 			// Add the converted input samples to the FIFO buffer for later processing
 			ret = add_samples_to_fifo(fifo, converted_input_samples, input_frame->nb_samples);

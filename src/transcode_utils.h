@@ -151,26 +151,26 @@ static int init_converted_samples(uint8_t ***converted_input_samples,
  * by frame_size.
  */
 static int convert_samples(const AVFrame *input_frame, uint8_t **converted_data,
-		                   SwrContext *resample_context, AVSampleFormat avformat, bool isMute) {
+                           SwrContext *resample_context, AVSampleFormat avformat, bool isMute) {
 	int error;
 
 	const uint8_t **input_data = (const uint8_t **)input_frame->extended_data;
 	const int frame_size = (const int)input_frame->nb_samples;
 	if (isMute==true) {
 		if ((error = av_samples_set_silence(converted_data, 0,
-				                       input_frame->nb_samples, input_frame->channels,
-			                           avformat)) < 0) {
+		                                    input_frame->nb_samples, input_frame->channels,
+		                                    avformat)) < 0) {
 			LOG_ERROR("Set silence frame failed",
 			          get_error_text(error));
 		}
 	} else {
-	/** Convert the samples using the resampler. */
-	if ((error = swr_convert(resample_context,
-	                         converted_data, frame_size,
-	                         input_data    , frame_size)) < 0) {
-		LOG_ERROR("Could not convert input samples (error '%s')",
-		          get_error_text(error));
-		return error;
+		/** Convert the samples using the resampler. */
+		if ((error = swr_convert(resample_context,
+		                         converted_data, frame_size,
+		                         input_data    , frame_size)) < 0) {
+			LOG_ERROR("Could not convert input samples (error '%s')",
+			          get_error_text(error));
+			return error;
 		}
 	}
 
@@ -390,24 +390,23 @@ static int init_transcoder(AVCodecParameters *codecpar, AVCodecContext** in_ctx,
 		LOG_ERROR("No encoder found for AAC");
 		return -1;
 	}
-    if(is_transcode_){
-	out_codec_ctx = avcodec_alloc_context3(out_codec);
-	out_codec_ctx->profile        = FF_PROFILE_AAC_LOW;
-	out_codec_ctx->channels       = 1;
-	out_codec_ctx->sample_rate    = in_codec_ctx->sample_rate ;
-	out_codec_ctx->channel_layout = av_get_default_channel_layout(out_codec_ctx->channels);
-	out_codec_ctx->sample_fmt     = out_codec->sample_fmts[0];
-	out_codec_ctx->bit_rate       = in_codec_ctx->bit_rate;
-    }
-    else{
-    	out_codec_ctx = avcodec_alloc_context3(out_codec);
-    	out_codec_ctx->profile        = codecpar->profile;
-    	out_codec_ctx->channels       = codecpar->channels;
-    	out_codec_ctx->sample_rate    = codecpar->sample_rate ;
-    	out_codec_ctx->channel_layout = codecpar->channel_layout;
-    	out_codec_ctx->sample_fmt     = (AVSampleFormat)codecpar->format;
-    	out_codec_ctx->bit_rate       = codecpar->bit_rate;
-    }
+	if (is_transcode_) {
+		out_codec_ctx = avcodec_alloc_context3(out_codec);
+		out_codec_ctx->profile        = FF_PROFILE_AAC_LOW;
+		out_codec_ctx->channels       = 1;
+		out_codec_ctx->sample_rate    = in_codec_ctx->sample_rate ;
+		out_codec_ctx->channel_layout = av_get_default_channel_layout(out_codec_ctx->channels);
+		out_codec_ctx->sample_fmt     = out_codec->sample_fmts[0];
+		out_codec_ctx->bit_rate       = in_codec_ctx->bit_rate;
+	} else {
+		out_codec_ctx = avcodec_alloc_context3(out_codec);
+		out_codec_ctx->profile        = codecpar->profile;
+		out_codec_ctx->channels       = codecpar->channels;
+		out_codec_ctx->sample_rate    = codecpar->sample_rate ;
+		out_codec_ctx->channel_layout = codecpar->channel_layout;
+		out_codec_ctx->sample_fmt     = (AVSampleFormat)codecpar->format;
+		out_codec_ctx->bit_rate       = codecpar->bit_rate;
+	}
 	char out_layout_str[16];
 	av_get_channel_layout_string(out_layout_str, sizeof(out_layout_str), -1,
 	                             out_codec_ctx->channel_layout);

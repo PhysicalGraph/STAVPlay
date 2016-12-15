@@ -87,13 +87,13 @@ class RTSPPlayerController : public PlayerController,
 		void OnSetDisplayRect(int32_t);
 
 		enum Message {
-			kError = -1,
-			kInitialized = 0,
-			kFlushed = 1,
-			kClosed = 2,
-			kEndOfStream = 3,
-			kAudioPkt = 4,
-			kVideoPkt = 5,
+		    kError = -1,
+		    kInitialized = 0,
+		    kFlushed = 1,
+		    kClosed = 2,
+		    kEndOfStream = 3,
+		    kAudioPkt = 4,
+		    kVideoPkt = 5,
 		};
 
 		void CleanPlayer();
@@ -105,7 +105,7 @@ class RTSPPlayerController : public PlayerController,
 		    AVPacket* input_packet, AVAudioFifo *fifo, AVCodecContext* in_codec_ctx,
 		    AVCodecContext* out_codec_ctx, SwrContext* resample_context,bool);
 		std::unique_ptr<ElementaryStreamPacket> MakeESPacketFromAVPacketDecode(
-			AVPacket* input_packet, AVCodecContext* in_codec_ctx);
+		    AVPacket* input_packet, AVCodecContext* in_codec_ctx);
 		void StartParsing(int32_t);
 		void calculateAudioLevel(AVFrame *, AVSampleFormat, AVRational);
 
